@@ -1,0 +1,1 @@
+A tenant-isolated activity feed system built with Node.js, Express, MongoDB, and React, implementing cursor-based pagination, optimistic UI updates, and infinite scrolling.
