@@ -1,9 +1,9 @@
 const express = require("express");
-const { createActivity, getActivities} = require("../controllers/activityController");
+const { createActivity, getActivities,checkHeaderMiddleware} = require("../controllers/activityController");
 
 const router = express.Router();
 
-router.post("/activities", createActivity);
-router.get("/activities", getActivities);
+router.post("/activities",checkHeaderMiddleware, createActivity);
+router.get("/activities", checkHeaderMiddleware,getActivities);
 
 module.exports = router;

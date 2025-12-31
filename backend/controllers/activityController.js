@@ -1,5 +1,14 @@
 const Activity = require("../models/activityModel");
 
+exports.checkHeaderMiddleware=async(req,res,next)=>{
+  const tenantId=req.headers["x-tenant-id"]
+  if(tenantId===undefined)
+  {
+      res.status(400).send({message:"Tenant id is missing!!!"})
+  }
+  next();
+}
+
 exports.createActivity = async (req, res) => {
   try {
     const tenantId = req.headers["x-tenant-id"];
