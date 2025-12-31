@@ -1,10 +1,10 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 
 const API_URL = "http://localhost:3000/activities";
 
 const mergeUniqueById = (oldList, newList) => {
   const map = new Map();
-  [...oldList, ...newList].forEach(item => { map.set(item._id, item);});
+  [...oldList, ...newList].forEach(item => { map.set(item._id, item); });
   return Array.from(map.values());
 };
 
@@ -15,13 +15,14 @@ function ActivityFeed() {
   const [hasMore, setHasMore] = useState(true);
   const [actorName, setActorName] = useState("");
   const [type, setType] = useState("");
+  const lastItemRef=useRef(null)
 
 
   const fetchActivities = useCallback(async () => {
     if (loading || !hasMore) return;
     setLoading(true);
     const url = cursor ? `${API_URL}?cursor=${cursor}` : API_URL;
-    const res = await fetch(url, {headers: { "x-tenant-id": "tenant-1" }});
+    const res = await fetch(url, { headers: { "x-tenant-id": "tenant-1" } });
     const json = await res.json();
 
     setActivities(prev => mergeUniqueById(prev, json.data));
@@ -31,8 +32,23 @@ function ActivityFeed() {
   }, [cursor, loading, hasMore]);
 
   useEffect(() => {
-    fetchActivities();
+    fetchActivities()
   }, []);
+  const lastRef=useCallback((node)=>{
+    if(loading) return;
+    if(lastItemRef.current) lastItemRef.current.disconnect();
+     lastItemRef.current = new IntersectionObserver((entries) => {
+      // entries[0] is the last element we are observing
+      if (entries[0].isIntersecting && hasMore) {
+        fetchActivities(); // Fetch more data when visible
+      }
+    },)
+   if (node) lastItemRef.current.observe(node);
+
+  },[loading,hasMore,fetchActivities])
+
+
+
 
   const createActivity = async () => {
     if (!actorName || !type) return;
@@ -56,7 +72,7 @@ function ActivityFeed() {
           "Content-Type": "application/json",
           "x-tenant-id": "tenant-1"
         },
-        body: JSON.stringify({actorId: "u1",actorName,type})
+        body: JSON.stringify({ actorId: "u1", actorName, type })
       });
 
       const saved = await res.json();
@@ -65,7 +81,7 @@ function ActivityFeed() {
       setActivities(prev =>
         prev.map(a => (a._id === tempId ? saved : a))
       );
-    } catch (error) {
+    } catch (error) {  // rollback
       setActivities(prev =>
         prev.filter(a => a._id !== tempId)
       );
@@ -110,12 +126,15 @@ function ActivityFeed() {
 
 
       <ul className="list-group">
-        {activities.map(activity => (
-          <li
+        {activities.map((activity,index) => 
+          {
+            if(activities.length==index+1)
+            {
+              return <div ref={lastRef}>
+                <li
             key={activity._id}
-            className={`list-group-item ${
-              activity.optimistic ? "opacity-50" : ""
-            }`}
+            className={`list-group-item ${activity.optimistic ? "opacity-50" : ""
+              }`}
           >
             <div className="fw-bold">
               {activity.actorName}
@@ -125,7 +144,30 @@ function ActivityFeed() {
               {new Date(activity.createdAt).toLocaleString()}
             </small>
           </li>
-        ))}
+              </div>
+            }
+            else
+            {
+               return <div>
+                <li
+            key={activity._id}
+            className={`list-group-item ${activity.optimistic ? "opacity-50" : ""
+              }`}
+          >
+            <div className="fw-bold">
+              {activity.actorName}
+            </div>
+            <div>{activity.type}</div>
+            <small className="text-muted">
+              {new Date(activity.createdAt).toLocaleString()}
+            </small>
+          </li>
+              </div>
+            }
+          }
+        )}
+        
+      
       </ul>
 
       {loading && (
