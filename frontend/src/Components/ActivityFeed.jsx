@@ -1,6 +1,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
-
+import {socket} from "./socket";
 const API_URL = "http://localhost:3000/activities";
+
 
 const mergeUniqueById = (oldList, newList) => {
   const map = new Map();
@@ -87,6 +88,23 @@ function ActivityFeed() {
       );
     }
   };
+
+  useEffect(() => {
+  socket.on("new-activity", activity => {
+    setActivities(prev => {
+      //  Deduplicate
+      if (prev.some(a => a._id === activity._id)) {
+        return prev;
+      }
+      return [activity, ...prev];
+    });
+  });
+
+  return () => {
+    socket.off("new-activity");
+  };
+}, []);
+
 
   return (
     <div className="container mt-4">

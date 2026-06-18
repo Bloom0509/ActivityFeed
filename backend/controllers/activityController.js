@@ -21,6 +21,9 @@ exports.createActivity = async (req, res) => {
       entityId: req.body.entityId,
       metadata: req.body.metadata
     });
+
+    // Emit real-time event
+    req.io.emit("new-activity", activity);
     res.status(201).json(activity);
   } catch (error) {res.status(500).json({ message: error.message });}
 };
