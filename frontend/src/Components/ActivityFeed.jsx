@@ -102,6 +102,7 @@ function ActivityFeed() {
 
   return () => {
     socket.off("new-activity");
+    socket.disconnect()
   };
 }, []);
 

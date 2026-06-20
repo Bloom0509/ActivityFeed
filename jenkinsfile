@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+
+        stage('Frontend') {
+            steps {
+                dir('frontend') {
+                    bat 'npm install'
+                    bat 'npm test -- --watchAll=false'
+                    bat 'npm run build'
+                }
+            }
+        }
+
+        stage('Backend') {
+            steps {
+                dir('backend') {
+                    bat 'npm install'
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            steps {
+                bat 'docker build -t activity-feed-frontend:v1 frontend'
+                bat 'docker build -t activity-feed-backend:v1 backend'
+            }
+        }
+    }
+}

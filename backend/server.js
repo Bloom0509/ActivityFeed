@@ -30,7 +30,7 @@ io.on("connection",socket=>{
 
 
 
-mongoose.connect("mongodb://localhost:27017/activity-feed").then(() => console.log("MongoDB connected"));
+mongoose.connect(process.env.MONGO_URI).then(() => console.log("MongoDB connected"));
 
 app.use((req, res, next) => {
   req.io = io;
